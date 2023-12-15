@@ -103,7 +103,13 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     /**
      * 状态，有INIT,ADD_PENDING,ADD_COMPLETE,REMOVE_COMPLETE等
-     * 除了DefaultChannelPipeline的head和tail,其它的ChannelHandlerContext一旦被添加到DefaultChannelPipeline，状态即为ADD_PENDING
+     * {@link DefaultChannelPipeline.TailContext#TailContext(io.netty.channel.DefaultChannelPipeline)}和
+     * {@link DefaultChannelPipeline.HeadContext#HeadContext(io.netty.channel.DefaultChannelPipeline)}
+     * 在构造器里面,就已经调用了{@link AbstractChannelHandlerContext#setAddComplete()}
+     * 也就是说一开始就是{@link AbstractChannelHandlerContext#ADD_COMPLETE}状态了
+     * <p>
+     * <p>
+     * 其它的ChannelHandlerContext一旦被添加到DefaultChannelPipeline，状态即为ADD_PENDING
      * 在方法 {@link AbstractChannelHandlerContext#setAddPending()}中被改变ADD_PENDING
      * 在方法{@link AbstractChannelHandlerContext#setAddComplete()}中被修改成ADD_COMPLETE
      */
@@ -237,10 +243,17 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
 
     @Override
     public ChannelHandlerContext fireChannelActive() {
+        // 寻找channelActive方法
         invokeChannelActive(findContextInbound(MASK_CHANNEL_ACTIVE));
         return this;
     }
 
+    /**
+     * 在{@link DefaultChannelPipeline#fireChannelActive()}中被调用
+     * next传递的是{@link DefaultChannelPipeline#head}
+     *
+     * @param next
+     */
     static void invokeChannelActive(final AbstractChannelHandlerContext next) {
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
@@ -255,8 +268,19 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
+    /**
+     * 在{@link AbstractChannelHandlerContext#invokeChannelActive(io.netty.channel.AbstractChannelHandlerContext)}
+     * 中被调用
+     */
     private void invokeChannelActive() {
+        /**
+         * 这个方法被触发的时候,本ChannelHandlerContext是{@link DefaultChannelPipeline.HeadContext}
+         * {@link DefaultChannelPipeline.HeadContext#HeadContext(io.netty.channel.DefaultChannelPipeline)}
+         * 在构造器里面,就已经调用了{@link AbstractChannelHandlerContext#setAddComplete()}
+         * 也就是说一开始就是{@link AbstractChannelHandlerContext#ADD_COMPLETE}状态了
+         */
         if (invokeHandler()) {
+            // 因此走到了这个分支
             try {
                 // DON'T CHANGE
                 // Duplex handlers implements both out/in interfaces causing a scalability issue
@@ -264,6 +288,7 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
                 final ChannelHandler handler = handler();
                 final DefaultChannelPipeline.HeadContext headContext = pipeline.head;
                 if (handler == headContext) {
+                    // 走这个分支
                     headContext.channelActive(this);
                 } else if (handler instanceof ChannelDuplexHandler) {
                     ((ChannelDuplexHandler) handler).channelActive(this);
@@ -825,6 +850,11 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
+    /**
+     * 在{@link DefaultChannelPipeline#read()}中被调用
+     *
+     * @return
+     */
     @Override
     public ChannelHandlerContext read() {
         final AbstractChannelHandlerContext next = findContextOutbound(MASK_READ);
@@ -842,6 +872,9 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return this;
     }
 
+    /**
+     * 在{@link AbstractChannelHandlerContext#read()}中被调用
+     */
     private void invokeRead() {
         if (invokeHandler()) {
             try {
@@ -1068,6 +1101,13 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         return false;
     }
 
+    /**
+     * 从前向后找,不包括本ChannelHandlerContext,寻找到下一个封装的ChannelHandler方法与传入的mask匹配，
+     * 且未标注@Skip注解的ChannelHandlerContext
+     *
+     * @param mask
+     * @return
+     */
     private AbstractChannelHandlerContext findContextInbound(int mask) {
         AbstractChannelHandlerContext ctx = this;
         EventExecutor currentExecutor = executor();
@@ -1193,6 +1233,8 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
      * If this method returns {@code false} we will not invoke the {@link ChannelHandler} but just forward the event.
      * This is needed as {@link DefaultChannelPipeline} may already put the {@link ChannelHandler} in the linked-list
      * but not called {@link ChannelHandler#handlerAdded(ChannelHandlerContext)}.
+     * 该ChannelHandlerContext{@link AbstractChannelHandlerContext#handlerState}为{@link AbstractChannelHandlerContext#ADD_COMPLETE}
+     * 或者为{io.netty.channel.AbstractChannelHandlerContext#ADD_PENDING}且{@link AbstractChannelHandlerContext#ordered}为false
      */
     private boolean invokeHandler() {
         // Store in local variable to reduce volatile reads.

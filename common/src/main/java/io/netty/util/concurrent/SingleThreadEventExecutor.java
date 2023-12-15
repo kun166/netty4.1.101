@@ -835,6 +835,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     /**
      * 在{@link io.netty.bootstrap.ServerBootstrap#init(io.netty.channel.Channel)}
      * 中被调用
+     * {@link io.netty.channel.AbstractChannel.AbstractUnsafe#invokeLater(java.lang.Runnable)}
      *
      * @param task
      */

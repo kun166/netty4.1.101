@@ -22,6 +22,7 @@ import io.netty.channel.nio.AbstractNioChannel;
 import io.netty.channel.nio.NioEventLoop;
 import io.netty.channel.socket.ChannelOutputShutdownEvent;
 import io.netty.channel.socket.ChannelOutputShutdownException;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.DefaultAttributeMap;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.internal.ObjectUtil;
@@ -310,6 +311,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
         return pipeline.deregister(promise);
     }
 
+    /**
+     * 在{@link DefaultChannelPipeline.HeadContext#readIfIsAutoRead()}中被调用
+     *
+     * @return
+     */
     @Override
     public Channel read() {
         pipeline.read();
@@ -619,8 +625,14 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                                 "address (" + localAddress + ") anyway as requested.");
             }
 
+            /**
+             * {@link NioServerSocketChannel#isActive()}
+             */
             boolean wasActive = isActive();
             try {
+                /**
+                 * {@link NioServerSocketChannel#doBind(java.net.SocketAddress)}
+                 */
                 doBind(localAddress);
             } catch (Throwable t) {
                 safeSetFailure(promise, t);
@@ -632,6 +644,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 invokeLater(new Runnable() {
                     @Override
                     public void run() {
+                        /**
+                         * NioServerSocketChannel在这里真正注册了事件
+                         */
                         pipeline.fireChannelActive();
                     }
                 });
@@ -895,6 +910,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             });
         }
 
+        /**
+         * 在{@link DefaultChannelPipeline.HeadContext#read(io.netty.channel.ChannelHandlerContext)}中被调用
+         */
         @Override
         public final void beginRead() {
             assertEventLoop();
@@ -1079,6 +1097,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             close(voidPromise());
         }
 
+        /**
+         * 在{@link AbstractUnsafe#bind(java.net.SocketAddress, io.netty.channel.ChannelPromise)}调用
+         *
+         * @param task
+         */
         private void invokeLater(Runnable task) {
             try {
                 // This method is used by outbound operation implementations to trigger an inbound event later.

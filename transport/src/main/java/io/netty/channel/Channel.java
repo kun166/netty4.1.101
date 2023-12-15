@@ -21,6 +21,7 @@ import io.netty.channel.socket.DatagramChannel;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.ServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.AttributeMap;
 
 import java.net.InetSocketAddress;
@@ -113,6 +114,7 @@ public interface Channel extends AttributeMap, ChannelOutboundInvoker, Comparabl
 
     /**
      * Return {@code true} if the {@link Channel} is active and so connected.
+     * {@link NioServerSocketChannel#isActive()}
      */
     boolean isActive();
 

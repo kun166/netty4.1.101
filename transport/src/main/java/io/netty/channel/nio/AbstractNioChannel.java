@@ -406,8 +406,14 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         boolean selected = false;
         for (; ; ) {
             try {
-                // 将jdk的Channel注册到Selector上
-                // 注意，这个地方的ops传了0，意思就是对任何事件都不监听，只是想拿一个SelectionKey
+                /**
+                 * 将jdk的Channel注册到Selector上
+                 * 注意，这个地方的ops传了0，意思就是对任何事件都不监听，只是想拿一个SelectionKey
+                 * 特别说明一下,同一个Channel可以注册到多个Selector上;同样,同一个Selector可以被多个不同的Channel注册。
+                 * Channel和Selector是多对多的。
+                 * 但是确定的一个Channel和确定的一个Selector之间，只有确定的一个SelectionKey
+                 * 有时间可以阅读下jdk源码
+                 */
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {
@@ -446,6 +452,9 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         readPending = true;
 
         final int interestOps = selectionKey.interestOps();
+        /**
+         * 最终在这里注册了{@link SelectionKey#OP_CONNECT}
+         */
         if ((interestOps & readInterestOp) == 0) {
             selectionKey.interestOps(interestOps | readInterestOp);
         }

@@ -1083,6 +1083,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return tail.deregister(promise);
     }
 
+    /**
+     * 在{@link AbstractChannel#read()}中被调用
+     *
+     * @return
+     */
     @Override
     public final ChannelPipeline read() {
         tail.read();
@@ -1473,6 +1478,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             unsafe.deregister(promise);
         }
 
+        /**
+         * 在{@link AbstractChannelHandlerContext#invokeRead()}中被调用
+         *
+         * @param ctx
+         */
         @Override
         public void read(ChannelHandlerContext ctx) {
             unsafe.beginRead();
@@ -1509,8 +1519,14 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             }
         }
 
+        /**
+         * 在{@link AbstractChannelHandlerContext#invokeChannelActive()}被调用
+         *
+         * @param ctx 这个其实就是{@link HeadContext}自身
+         */
         @Override
         public void channelActive(ChannelHandlerContext ctx) {
+            // 触发fireChannelActive方法链
             ctx.fireChannelActive();
 
             readIfIsAutoRead();
@@ -1533,6 +1549,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             readIfIsAutoRead();
         }
 
+        /**
+         * 在{@link HeadContext#channelActive(io.netty.channel.ChannelHandlerContext)}
+         * 中被调用
+         */
         private void readIfIsAutoRead() {
             if (channel.config().isAutoRead()) {
                 channel.read();
