@@ -106,6 +106,12 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
         return (InetSocketAddress) super.localAddress();
     }
 
+    /**
+     * {@link DefaultChannelConfig#DefaultChannelConfig(io.netty.channel.Channel, io.netty.channel.RecvByteBufAllocator)}
+     * 被调用
+     *
+     * @return
+     */
     @Override
     public ChannelMetadata metadata() {
         return METADATA;
@@ -159,12 +165,25 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
         javaChannel().close();
     }
 
+    /**
+     * 在{@link NioMessageUnsafe#read()}中被调用
+     *
+     * @param buf
+     * @return
+     * @throws Exception
+     */
     @Override
     protected int doReadMessages(List<Object> buf) throws Exception {
+        /**
+         *{@link ServerSocketChannel#accept()}返回的{@link SocketChannel}
+         */
         SocketChannel ch = SocketUtils.accept(javaChannel());
 
         try {
             if (ch != null) {
+                /**
+                 * 把{@link SocketChannel}封装成{@link NioSocketChannel}
+                 */
                 buf.add(new NioSocketChannel(this, ch));
                 return 1;
             }

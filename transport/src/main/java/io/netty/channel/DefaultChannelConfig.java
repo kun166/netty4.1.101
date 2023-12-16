@@ -17,6 +17,7 @@ package io.netty.channel;
 
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.socket.DefaultServerSocketChannelConfig;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.internal.ObjectUtil;
 
 import java.util.IdentityHashMap;
@@ -59,6 +60,10 @@ public class DefaultChannelConfig implements ChannelConfig {
     protected final Channel channel;
 
     private volatile ByteBufAllocator allocator = ByteBufAllocator.DEFAULT;
+
+    /**
+     * {@link ServerChannelRecvByteBufAllocator}
+     */
     private volatile RecvByteBufAllocator rcvBufAllocator;
     private volatile MessageSizeEstimator msgSizeEstimator = DEFAULT_MSG_SIZE_ESTIMATOR;
 
@@ -81,7 +86,7 @@ public class DefaultChannelConfig implements ChannelConfig {
      * 调用
      *
      * @param channel
-     * @param allocator
+     * @param allocator {@link ServerChannelRecvByteBufAllocator}
      */
     protected DefaultChannelConfig(Channel channel, RecvByteBufAllocator allocator) {
         setRecvByteBufAllocator(allocator, channel.metadata());
@@ -326,6 +331,9 @@ public class DefaultChannelConfig implements ChannelConfig {
 
     /**
      * Set the {@link RecvByteBufAllocator} which is used for the channel to allocate receive buffers.
+     * <p>
+     * {@link ServerChannelRecvByteBufAllocator}
+     * {@link ChannelMetadata}
      *
      * @param allocator the allocator to set.
      * @param metadata  Used to set the {@link ChannelMetadata#defaultMaxMessagesPerRead()} if {@code allocator}
@@ -335,6 +343,9 @@ public class DefaultChannelConfig implements ChannelConfig {
         checkNotNull(allocator, "allocator");
         checkNotNull(metadata, "metadata");
         if (allocator instanceof MaxMessagesRecvByteBufAllocator) {
+            /**
+             * {@link NioServerSocketChannel#METADATA}
+             */
             ((MaxMessagesRecvByteBufAllocator) allocator).maxMessagesPerRead(metadata.defaultMaxMessagesPerRead());
         }
         setRecvByteBufAllocator(allocator);

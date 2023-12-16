@@ -16,6 +16,7 @@
 package io.netty.channel.nio;
 
 import io.netty.channel.*;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.io.IOException;
 import java.net.PortUnreachableException;
@@ -60,7 +61,16 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
         super.doBeginRead();
     }
 
+    /**
+     * 在{@link NioMessageUnsafe#read()}中调用
+     *
+     * @param allocHandle {@link ServerChannelRecvByteBufAllocator#newHandle()}
+     * @return
+     */
     protected boolean continueReading(RecvByteBufAllocator.Handle allocHandle) {
+        /**
+         * {@link DefaultMaxMessagesRecvByteBufAllocator.MaxMessageHandle#continueReading()}
+         */
         return allocHandle.continueReading();
     }
 
@@ -77,6 +87,9 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             assert eventLoop().inEventLoop();
             final ChannelConfig config = config();
             final ChannelPipeline pipeline = pipeline();
+            /**
+             * {@link ServerChannelRecvByteBufAllocator#newHandle()}
+             */
             final RecvByteBufAllocator.Handle allocHandle = unsafe().recvBufAllocHandle();
             allocHandle.reset(config);
 
@@ -85,6 +98,9 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
             try {
                 try {
                     do {
+                        /**
+                         * 调用{@link NioServerSocketChannel#doReadMessages(java.util.List)}
+                         */
                         int localRead = doReadMessages(readBuf);
                         if (localRead == 0) {
                             break;
