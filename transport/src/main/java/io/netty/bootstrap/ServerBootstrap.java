@@ -16,6 +16,7 @@
 package io.netty.bootstrap;
 
 import io.netty.channel.*;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import io.netty.util.concurrent.SingleThreadEventExecutor;
 import io.netty.util.internal.ObjectUtil;
@@ -269,6 +270,12 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             };
         }
 
+        /**
+         * 在{@link AbstractChannelHandlerContext#invokeChannelRead(java.lang.Object)}中被调用
+         *
+         * @param ctx 包装该ChannelHandler的ChannelHandlerContext
+         * @param msg {@link NioSocketChannel}
+         */
         @Override
         @SuppressWarnings("unchecked")
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -290,6 +297,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             }
 
             try {
+                /**
+                 * 最终调用了{@link SingleThreadEventLoop#register(io.netty.channel.Channel)}
+                 */
                 childGroup.register(child).addListener(new ChannelFutureListener() {
                     @Override
                     public void operationComplete(ChannelFuture future) throws Exception {

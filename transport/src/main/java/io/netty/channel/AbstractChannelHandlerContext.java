@@ -15,7 +15,9 @@
  */
 package io.netty.channel;
 
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 import io.netty.util.ReferenceCountUtil;
@@ -441,13 +443,29 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
+    /**
+     * 在{@link DefaultChannelPipeline.HeadContext#channelRead(io.netty.channel.ChannelHandlerContext, java.lang.Object)}
+     * 中被调用
+     *
+     * @param msg {@link NioSocketChannel}
+     * @return
+     */
     @Override
     public ChannelHandlerContext fireChannelRead(final Object msg) {
         invokeChannelRead(findContextInbound(MASK_CHANNEL_READ), msg);
         return this;
     }
 
+    /**
+     * 在{@link DefaultChannelPipeline#fireChannelRead(java.lang.Object)}中被调用
+     * 在{@link AbstractChannelHandlerContext#fireChannelRead(java.lang.Object)}中被调用
+     * 然后就形成了从head到tail遍历一遍了
+     *
+     * @param next {@link DefaultChannelPipeline#head}
+     * @param msg  {@link NioSocketChannel}
+     */
     static void invokeChannelRead(final AbstractChannelHandlerContext next, Object msg) {
+        // 这个m其实就是msg
         final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
@@ -462,6 +480,12 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
         }
     }
 
+    /**
+     * 在{@link AbstractChannelHandlerContext#invokeChannelRead(io.netty.channel.AbstractChannelHandlerContext, java.lang.Object)}
+     * 被调用
+     *
+     * @param msg {@link NioSocketChannel}
+     */
     private void invokeChannelRead(Object msg) {
         if (invokeHandler()) {
             try {
@@ -478,6 +502,12 @@ abstract class AbstractChannelHandlerContext implements ChannelHandlerContext, R
                 } else if (handler instanceof ChannelDuplexHandler) {
                     ((ChannelDuplexHandler) handler).channelRead(this, msg);
                 } else {
+                    /**
+                     * 从head到tail依次调用。
+                     * 其中{@link ServerBootstrap#init(io.netty.channel.Channel)}方法中，加入的
+                     * {@link ServerBootstrap.ServerBootstrapAcceptor}。
+                     * 也就是说，这个地方调用了{@link ServerBootstrap.ServerBootstrapAcceptor#channelRead(io.netty.channel.ChannelHandlerContext, java.lang.Object)}
+                     */
                     ((ChannelInboundHandler) handler).channelRead(this, msg);
                 }
             } catch (Throwable t) {

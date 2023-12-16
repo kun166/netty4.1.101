@@ -29,6 +29,7 @@ import io.netty.channel.internal.ChannelUtils;
 import io.netty.channel.socket.ChannelInputShutdownEvent;
 import io.netty.channel.socket.ChannelInputShutdownReadComplete;
 import io.netty.channel.socket.SocketChannelConfig;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.internal.StringUtil;
 
 import java.io.IOException;
@@ -58,6 +59,8 @@ public abstract class AbstractNioByteChannel extends AbstractNioChannel {
 
     /**
      * Create a new instance
+     * {@link NioSocketChannel#NioSocketChannel(io.netty.channel.Channel, java.nio.channels.SocketChannel)}
+     * 中被调用
      *
      * @param parent the parent {@link Channel} by which this instance was created. May be {@code null}
      * @param ch     the underlying {@link SelectableChannel} on which it operates

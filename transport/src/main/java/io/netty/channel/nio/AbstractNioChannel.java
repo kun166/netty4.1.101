@@ -28,6 +28,7 @@ import io.netty.channel.ChannelPromise;
 import io.netty.channel.ConnectTimeoutException;
 import io.netty.channel.EventLoop;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
 import io.netty.util.concurrent.Future;
@@ -53,8 +54,12 @@ public abstract class AbstractNioChannel extends AbstractChannel {
 
     private final SelectableChannel ch;
     /**
-     * 构造器传进来的是{@link SelectionKey#OP_CONNECT}
+     * {@link NioServerSocketChannel}构造器传进来的是{@link SelectionKey#OP_CONNECT}
      * 在{@link AbstractNioChannel#doBeginRead()}中被注册
+     *
+     * <p>
+     * {@link NioSocketChannel}传入的是{@link SelectionKey#OP_READ}
+     * </p>
      */
     protected final int readInterestOp;
 
@@ -64,6 +69,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     volatile SelectionKey selectionKey;
     /**
      * 在{@link AbstractNioChannel#doBeginRead()}中被赋值true
+     * 在{@link AbstractNioMessageChannel.NioMessageUnsafe#read()}中被赋值为false
      */
     boolean readPending;
     private final Runnable clearReadPendingRunnable = new Runnable() {
@@ -84,6 +90,10 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     /**
      * Create a new instance
      * {@link NioServerSocketChannel#NioServerSocketChannel()}无参构造器，调用到这里了
+     * <p>
+     * {@link AbstractNioByteChannel#AbstractNioByteChannel(io.netty.channel.Channel, java.nio.channels.SelectableChannel)}
+     * 调用，其中readInterestOp传入的是{@link SelectionKey#OP_READ}
+     * </p>
      *
      * @param parent         the parent {@link Channel} by which this instance was created. May be {@code null}
      * @param ch             the underlying {@link SelectableChannel} on which it operates

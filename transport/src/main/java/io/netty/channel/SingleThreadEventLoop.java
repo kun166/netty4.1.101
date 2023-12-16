@@ -16,6 +16,8 @@
 package io.netty.channel;
 
 import io.netty.bootstrap.AbstractBootstrap;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.RejectedExecutionHandler;
 import io.netty.util.concurrent.RejectedExecutionHandlers;
 import io.netty.util.concurrent.SingleThreadEventExecutor;
@@ -78,6 +80,14 @@ public abstract class SingleThreadEventLoop extends SingleThreadEventExecutor im
         return (EventLoop) super.next();
     }
 
+    /**
+     * 在{@link MultithreadEventLoopGroup#register(io.netty.channel.Channel)}上被调用。
+     * 实际上是在{@link ServerBootstrap.ServerBootstrapAcceptor#channelRead(io.netty.channel.ChannelHandlerContext, java.lang.Object)}
+     * 中被调用
+     *
+     * @param channel {@link NioSocketChannel}
+     * @return
+     */
     @Override
     public ChannelFuture register(Channel channel) {
         return register(new DefaultChannelPromise(channel, this));
@@ -85,6 +95,7 @@ public abstract class SingleThreadEventLoop extends SingleThreadEventExecutor im
 
     /**
      * 在{@link AbstractBootstrap#initAndRegister()}调用
+     * 在{@link SingleThreadEventLoop#register(io.netty.channel.Channel)}中被调用
      *
      * @param promise
      * @return

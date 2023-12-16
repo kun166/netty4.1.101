@@ -17,6 +17,7 @@ package io.netty.channel.nio;
 
 import io.netty.channel.*;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.io.IOException;
 import java.net.PortUnreachableException;
@@ -76,6 +77,10 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
 
     private final class NioMessageUnsafe extends AbstractNioUnsafe {
 
+        /**
+         * 在{@link NioServerSocketChannel#doReadMessages(java.util.List)}中被调用
+         * 泛型是{@link NioSocketChannel}
+         */
         private final List<Object> readBuf = new ArrayList<Object>();
 
         /**
@@ -111,6 +116,8 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                         }
 
                         allocHandle.incMessagesRead(localRead);
+                        // 下面这while,简单的可以理解为,根据localRead累加值最多累加到16
+                        // 也即处理最大16个连接
                     } while (continueReading(allocHandle));
                 } catch (Throwable t) {
                     exception = t;
@@ -121,6 +128,7 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
                     readPending = false;
                     pipeline.fireChannelRead(readBuf.get(i));
                 }
+                // 调用结束就清空了
                 readBuf.clear();
                 allocHandle.readComplete();
                 pipeline.fireChannelReadComplete();

@@ -23,6 +23,7 @@ import io.netty.channel.nio.NioEventLoop;
 import io.netty.channel.socket.ChannelOutputShutdownEvent;
 import io.netty.channel.socket.ChannelOutputShutdownException;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.DefaultAttributeMap;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.internal.ObjectUtil;
@@ -579,6 +580,9 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                  * ServerBootstrap,在这个地方是不会往下走了
                  * pipeline.fireChannelActive()方法的调用，实际上是在下面这个方法里
                  * {@link AbstractUnsafe#bind(java.net.SocketAddress, io.netty.channel.ChannelPromise)}
+                 *
+                 * {@link ServerBootstrap.ServerBootstrapAcceptor#channelRead(io.netty.channel.ChannelHandlerContext, java.lang.Object)}
+                 * 中，调用的{@link NioSocketChannel}的register,直接走下面了
                  */
                 if (isActive()) {
                     if (firstRegistration) {

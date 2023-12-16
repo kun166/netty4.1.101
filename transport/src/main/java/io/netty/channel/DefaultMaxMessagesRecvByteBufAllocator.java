@@ -111,11 +111,19 @@ public abstract class DefaultMaxMessagesRecvByteBufAllocator implements MaxMessa
      */
     public abstract class MaxMessageHandle implements ExtendedHandle {
         private ChannelConfig config;
+        /**
+         * 在{@link MaxMessageHandle#reset(io.netty.channel.ChannelConfig)}中，通过
+         * {@link DefaultMaxMessagesRecvByteBufAllocator#maxMessagesPerRead}设置为16
+         */
         private int maxMessagePerRead;
         /**
+         * 在{@link MaxMessageHandle#reset(io.netty.channel.ChannelConfig)}中被设置为0
          * {@link AbstractNioMessageChannel.NioMessageUnsafe#read()}被调用
          */
         private int totalMessages;
+        /**
+         * 在{@link MaxMessageHandle#reset(io.netty.channel.ChannelConfig)}中被设置为0
+         */
         private int totalBytesRead;
         private int attemptedBytesRead;
         private int lastBytesRead;

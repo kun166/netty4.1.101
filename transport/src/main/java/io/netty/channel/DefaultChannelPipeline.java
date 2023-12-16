@@ -16,6 +16,8 @@
 package io.netty.channel;
 
 import io.netty.channel.Channel.Unsafe;
+import io.netty.channel.nio.AbstractNioMessageChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
 import io.netty.util.concurrent.EventExecutor;
@@ -990,12 +992,24 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
+    /**
+     * 在{@link AbstractNioMessageChannel.NioMessageUnsafe#read()}中被调用
+     * 其中传递参数msg为{@link NioSocketChannel}
+     *
+     * @param msg
+     * @return
+     */
     @Override
     public final ChannelPipeline fireChannelRead(Object msg) {
         AbstractChannelHandlerContext.invokeChannelRead(head, msg);
         return this;
     }
 
+    /**
+     * 在{@link AbstractNioMessageChannel.NioMessageUnsafe#read()}中被调用
+     *
+     * @return
+     */
     @Override
     public final ChannelPipeline fireChannelReadComplete() {
         AbstractChannelHandlerContext.invokeChannelReadComplete(head);
@@ -1537,6 +1551,12 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             ctx.fireChannelInactive();
         }
 
+        /**
+         * 在{@link AbstractChannelHandlerContext#invokeChannelRead(java.lang.Object)}中被调用
+         *
+         * @param ctx
+         * @param msg {@link NioSocketChannel}
+         */
         @Override
         public void channelRead(ChannelHandlerContext ctx, Object msg) {
             ctx.fireChannelRead(msg);
