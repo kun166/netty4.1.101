@@ -17,6 +17,7 @@ package io.netty.channel;
 
 import io.netty.channel.Channel.Unsafe;
 import io.netty.channel.nio.AbstractNioMessageChannel;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ResourceLeakDetector;
@@ -963,8 +964,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     /**
+     * {@link NioServerSocketChannel}
      * 在{@link AbstractChannel.AbstractUnsafe#bind(java.net.SocketAddress, io.netty.channel.ChannelPromise)}
      * 中被调用
+     * <p>
+     * {@link NioSocketChannel}
+     * 在{@link AbstractChannel.AbstractUnsafe#register0(io.netty.channel.ChannelPromise)}中
+     * 被调用
      *
      * @return
      */

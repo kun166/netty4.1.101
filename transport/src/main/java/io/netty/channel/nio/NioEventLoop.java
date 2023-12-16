@@ -16,6 +16,8 @@
 package io.netty.channel.nio;
 
 import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.IntSupplier;
 import io.netty.util.concurrent.RejectedExecutionHandler;
 import io.netty.util.concurrent.SingleThreadEventExecutor;
@@ -29,10 +31,7 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.nio.channels.CancelledKeyException;
-import java.nio.channels.SelectableChannel;
-import java.nio.channels.Selector;
-import java.nio.channels.SelectionKey;
+import java.nio.channels.*;
 
 import java.nio.channels.spi.SelectorProvider;
 import java.security.AccessController;
@@ -842,7 +841,21 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
             // Also check for readOps of 0 to workaround possible JDK bug which may otherwise lead
             // to a spin loop
+            /**
+             * 注意这个if条件
+             * 不论是触发{@link SelectionKey#OP_READ}还是触发{@link SelectionKey#OP_ACCEPT}
+             * 都会进入if条件里面执行
+             *
+             * 特别说一下:
+             * {@link ServerSocketChannel}只能注册{@link SelectionKey#OP_ACCEPT}
+             * 然后通过{@link ServerSocketChannel#accept()}方法，获取到{@link SocketChannel}
+             * 才能注册{@link SelectionKey#OP_READ}
+             */
             if ((readyOps & (SelectionKey.OP_READ | SelectionKey.OP_ACCEPT)) != 0 || readyOps == 0) {
+                /**
+                 * 因此{@link AbstractNioMessageChannel.NioMessageUnsafe#read()}就是去获取{@link SocketChannel}
+                 * 然后封装成{@link NioSocketChannel}
+                 */
                 unsafe.read();
             }
         } catch (CancelledKeyException ignored) {

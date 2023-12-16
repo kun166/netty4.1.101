@@ -26,6 +26,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.DefaultAttributeMap;
 import io.netty.util.ReferenceCountUtil;
+import io.netty.util.concurrent.SingleThreadEventExecutor;
 import io.netty.util.internal.ObjectUtil;
 import io.netty.util.internal.PlatformDependent;
 import io.netty.util.internal.UnstableApi;
@@ -519,14 +520,29 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 return;
             }
 
-            // 设置eventLoop
-            // 这个eventLoop是ServerBootstrap持有的group()的NioEventLoop
+            /**
+             * 设置eventLoop
+             * {@link ServerBootstrap}的register的话,这个eventLoop是持有的group()的NioEventLoop
+             * 如果是从{@link ServerBootstrap.ServerBootstrapAcceptor#channelRead(io.netty.channel.ChannelHandlerContext, java.lang.Object)}
+             * 发起的register,则是{@link ServerBootstrap.ServerBootstrapAcceptor#childGroup}
+             */
             AbstractChannel.this.eventLoop = eventLoop;
-
+            /**
+             * 注意下面代码太重要了
+             * 这个{@link SingleThreadEventExecutor#inEventLoop(java.lang.Thread)}
+             * 此时的{@link SingleThreadEventExecutor#thread}还是null,
+             * 必然走else分支
+             */
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {
                 try {
+                    /**
+                     * 非常非常重要
+                     * 下面这个{@link SingleThreadEventExecutor#execute(java.lang.Runnable)}
+                     * 方法,会调用{@link SingleThreadEventExecutor#startThread()},
+                     * 然后继续调用{@link NioEventLoop#run()},完成io事件
+                     */
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
@@ -577,11 +593,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 // Only fire a channelActive if the channel has never been registered. This prevents firing
                 // multiple channel actives if the channel is deregistered and re-registered.
                 /**
-                 * ServerBootstrap,在这个地方是不会往下走了
+                 * 如果是ServerBootstrap 注册,在这个地方是不会往下走了
                  * pipeline.fireChannelActive()方法的调用，实际上是在下面这个方法里
                  * {@link AbstractUnsafe#bind(java.net.SocketAddress, io.netty.channel.ChannelPromise)}
                  *
-                 * {@link ServerBootstrap.ServerBootstrapAcceptor#channelRead(io.netty.channel.ChannelHandlerContext, java.lang.Object)}
+                 * 如果是{@link ServerBootstrap.ServerBootstrapAcceptor#channelRead(io.netty.channel.ChannelHandlerContext, java.lang.Object)}
                  * 中，调用的{@link NioSocketChannel}的register,直接走下面了
                  */
                 if (isActive()) {

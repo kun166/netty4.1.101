@@ -76,6 +76,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private final Queue<Runnable> taskQueue;
 
+    /**
+     * {@link SingleThreadEventExecutor#doStartThread()}里面设置
+     */
     private volatile Thread thread;
     @SuppressWarnings("unused")
     private volatile ThreadProperties threadProperties;
@@ -849,6 +852,11 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         lazyExecute0(task);
     }
 
+    /**
+     * {@link SingleThreadEventExecutor#execute(java.lang.Runnable)}中调用
+     *
+     * @param task
+     */
     private void execute0(@Schedule Runnable task) {
         ObjectUtil.checkNotNull(task, "task");
         execute(task, wakesUpForTask(task));
@@ -858,6 +866,12 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         execute(ObjectUtil.checkNotNull(task, "task"), false);
     }
 
+    /**
+     * {@link SingleThreadEventExecutor#execute0(java.lang.Runnable)}调用
+     *
+     * @param task
+     * @param immediate
+     */
     private void execute(Runnable task, boolean immediate) {
         /**
          * 第一次执行的时候,{@link SingleThreadEventExecutor#thread}为null,显然是false
@@ -980,6 +994,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private static final long SCHEDULE_PURGE_INTERVAL = TimeUnit.SECONDS.toNanos(1);
 
+    /**
+     * {@link SingleThreadEventExecutor#execute(java.lang.Runnable, boolean)}中调用
+     */
     private void startThread() {
         if (state == ST_NOT_STARTED) {
             // 判断线程是否已经启动
@@ -1017,6 +1034,9 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         return false;
     }
 
+    /**
+     * {@link SingleThreadEventExecutor#startThread()}中调用
+     */
     private void doStartThread() {
         assert thread == null;
         executor.execute(new Runnable() {

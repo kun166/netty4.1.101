@@ -463,7 +463,9 @@ public abstract class AbstractNioChannel extends AbstractChannel {
 
         final int interestOps = selectionKey.interestOps();
         /**
-         * 最终在这里注册了{@link SelectionKey#OP_CONNECT}
+         * {@link NioServerSocketChannel}最终在这里注册了{@link SelectionKey#OP_CONNECT}
+         *
+         * 如果是{@link NioSocketChannel},最终在这里注册了{@link SelectionKey#OP_READ}
          */
         if ((interestOps & readInterestOp) == 0) {
             selectionKey.interestOps(interestOps | readInterestOp);
