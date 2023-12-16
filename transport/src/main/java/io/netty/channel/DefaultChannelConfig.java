@@ -63,6 +63,7 @@ public class DefaultChannelConfig implements ChannelConfig {
 
     /**
      * {@link ServerChannelRecvByteBufAllocator}
+     * {@link AdaptiveRecvByteBufAllocator}
      */
     private volatile RecvByteBufAllocator rcvBufAllocator;
     private volatile MessageSizeEstimator msgSizeEstimator = DEFAULT_MSG_SIZE_ESTIMATOR;
@@ -86,7 +87,7 @@ public class DefaultChannelConfig implements ChannelConfig {
      * 调用
      *
      * @param channel
-     * @param allocator {@link ServerChannelRecvByteBufAllocator}
+     * @param allocator {@link ServerChannelRecvByteBufAllocator} {@link AdaptiveRecvByteBufAllocator}
      */
     protected DefaultChannelConfig(Channel channel, RecvByteBufAllocator allocator) {
         setRecvByteBufAllocator(allocator, channel.metadata());

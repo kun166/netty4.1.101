@@ -478,6 +478,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             if (recvHandle == null) {
                 /**
                  * {@link ServerChannelRecvByteBufAllocator#newHandle()}
+                 * {@link AdaptiveRecvByteBufAllocator#newHandle()}
                  */
                 recvHandle = config().getRecvByteBufAllocator().newHandle();
             }

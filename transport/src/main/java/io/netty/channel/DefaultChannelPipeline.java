@@ -15,7 +15,9 @@
  */
 package io.netty.channel;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel.Unsafe;
+import io.netty.channel.nio.AbstractNioByteChannel;
 import io.netty.channel.nio.AbstractNioMessageChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -1001,6 +1003,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     /**
      * 在{@link AbstractNioMessageChannel.NioMessageUnsafe#read()}中被调用
      * 其中传递参数msg为{@link NioSocketChannel}
+     * <p>
+     * 在{@link AbstractNioByteChannel.NioByteUnsafe#read()}中被调用
+     * 其中传递参数msg为{@link ByteBuf}
      *
      * @param msg
      * @return
